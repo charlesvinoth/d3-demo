@@ -1,13 +1,19 @@
 <template>
   <div id="app">
-    <router-view />
+    <AppLayout />
   </div>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+<script>
+import AppLayout from "./layouts/app/AppLayout.vue"
+
+export default {
+  name: "App",
+
+  components: {
+    AppLayout,
+  },
 }
-</style>
+</script>
+
+<style></style>
