@@ -305,7 +305,7 @@ function createPoints() {
     .attr("fill", "var(--green-600)")
     .attr("stroke", "var(--green-600)")
     .attr("stroke-width", 16)
-    .attr("stroke-opacity", 0.1)
+    .attr("stroke-opacity", 0.2)
     .on("click", (e) => e.stopPropagation())
     .call(drag)
 }

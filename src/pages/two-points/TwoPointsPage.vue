@@ -70,7 +70,7 @@ export default {
         },
         pointRules: {
           minimumPoints: 1,
-          maximumPoints: 2,
+          maximumPoints: 3,
         },
       },
     }
