@@ -1,6 +1,6 @@
 <template>
-  <div id="twoPoints" ref="twoPoints">
-    <svg width="500" height="500" view-box="0 0 100 100">
+  <div ref="graph">
+    <!-- <svg width="500" height="500" view-box="0 0 100 100">
       <rect
         x="40"
         y="40"
@@ -16,9 +16,9 @@
       <line
         v-for="i in 20"
         :key="i"
-        :x1="40 + i * 20"
+        :x1="40 + i * 21"
         :y1="42"
-        :x2="40 + i * 20"
+        :x2="40 + i * 21"
         :y2="458"
         stroke="lightgray"
         stroke-width="1"
@@ -27,39 +27,57 @@
         v-for="i in 20"
         :key="i"
         :x1="42"
-        :y1="40 + i * 20"
+        :y1="40 + i * 21"
         :x2="458"
-        :y2="40 + i * 20"
+        :y2="40 + i * 21"
         stroke="lightgray"
         stroke-width="1"
       ></line>
       <line x1="42" y1="250" x2="458" y2="250" stroke="blue" stroke-width="2"></line>
       <line x1="250" y1="42" x2="250" y2="458" stroke="blue" stroke-width="2"></line>
-    </svg>
+    </svg> -->
   </div>
 </template>
 
 <script>
-import d3Mixin from "@/mixins/d3Mixin"
+import { initializeD3 } from "@/lib/d3Graph"
 
 export default {
   name: "TwoPointsPage",
 
-  mixins: [d3Mixin],
-
   data() {
     return {
       graphConfig: {
+        gridType: "coordinate",
         width: 500,
         height: 500,
-        margin: { top: 40, right: 40, bottom: 40, left: 40 },
-        title: "Two Points & One Line",
+        title: "Two Points",
+        vLines: 22,
+        hLines: 22,
+        outerLineWeight: 3,
+        outerLineColor: "var(--blue-700)",
+        innerLineWeight: 1,
+        innerLineColor: "var(--gray-200)",
+        xAxis: {
+          startPoint: -10,
+          increment: 1,
+          title: "x",
+        },
+        yAxis: {
+          startPoint: -10,
+          increment: 1,
+          title: "y",
+        },
+        pointRules: {
+          minimumPoints: 1,
+          maximumPoints: 2,
+        },
       },
     }
   },
 
   mounted() {
-    // this.initializeD3(this.$refs.twoPoints, this.graphConfig)
+    initializeD3(this.$refs.graph, this.graphConfig)
   },
 }
 </script>
