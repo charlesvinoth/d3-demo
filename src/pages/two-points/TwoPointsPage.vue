@@ -70,7 +70,8 @@ export default {
         },
         pointRules: {
           minimumPoints: 1,
-          maximumPoints: 3,
+          maximumPoints: 2,
+          extendLines: true,
         },
       },
     }

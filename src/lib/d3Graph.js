@@ -28,6 +28,7 @@ let graphConfig = {
   pointRules: {
     minimumPoints: 1,
     maximumPoints: 2,
+    extendLines: true,
   },
 }
 let xScale = null
@@ -102,15 +103,15 @@ function calculateDomain() {
   const startPoint = graphConfig.xAxis.startPoint
 
   if (graphConfig.gridType === "coordinate") {
-    const domainStart = startPoint - 1 // add 1 for the left outer line
-    const domainEnd = startPoint * -1 + 1 // invert the number and add 1 for the right outer line
-    return [domainStart, domainEnd]
+    const domainMin = startPoint - 1 // add 1 for the left outer line
+    const domainMax = startPoint * -1 + 1 // invert the number and add 1 for the right outer line
+    return [domainMin, domainMax]
   }
 
   if (graphConfig.gridType === "oneQuadrant") {
-    const domainStart = startPoint
-    const domainEnd = graphConfig.vLines
-    return [domainStart, domainEnd]
+    const domainMin = startPoint
+    const domainMax = graphConfig.vLines
+    return [domainMin, domainMax]
   }
 }
 
@@ -152,9 +153,9 @@ function createGrid() {
 
   // create scales
 
-  const [domainStart, domainEnd] = calculateDomain()
+  const [domainMin, domainMax] = calculateDomain()
 
-  xScale = d3.scaleLinear().domain([domainStart, domainEnd]).range([0, width])
+  xScale = d3.scaleLinear().domain([domainMin, domainMax]).range([0, width])
   const xAxis = d3.axisBottom(xScale).ticks(graphConfig.vLines).tickSize(0).tickPadding(4)
 
   d3.select("g#graph")
@@ -163,7 +164,7 @@ function createGrid() {
     .attr("transform", `translate(0, ${height / 2})`)
     .call(xAxis)
 
-  yScale = d3.scaleLinear().domain([domainEnd, domainStart]).range([0, height])
+  yScale = d3.scaleLinear().domain([domainMax, domainMin]).range([0, height])
   const yAxis = d3.axisLeft(yScale).ticks(graphConfig.vLines).tickSize(0).tickPadding(4)
 
   d3.select("g#graph")
@@ -310,8 +311,72 @@ function createPoints() {
     .call(drag)
 }
 
+function getExtendedPoints() {
+  // Ensure there are exactly two points
+  if (points.length !== 2) return points
+
+  // Destructure the points into individual coordinates
+  const [{ x: x1, y: y1 }, { x: x2, y: y2 }] = points
+
+  const marginLeft = graphConfig.margin.left
+  const marginTop = graphConfig.margin.top
+
+  // Convert range coordinates to domain coordinates
+  const dataX1 = Math.round(xScale.invert(x1 - marginLeft))
+  const dataY1 = Math.round(yScale.invert(y1 - marginTop))
+  const dataX2 = Math.round(xScale.invert(x2 - marginLeft))
+  const dataY2 = Math.round(yScale.invert(y2 - marginTop))
+
+  // Calculate the slope of the line
+  const slope = (dataY2 - dataY1) / (dataX2 - dataX1)
+
+  // Calculate the y-intercept of the line
+  const yIntercept = dataY1 - slope * dataX1
+
+  // Get the domain range for the graph
+  const [domainMin, domainMax] = calculateDomain()
+
+  const intersections = []
+
+  // Calculate intersection with the left edge (x = domainMin)
+  let yLeft = slope * domainMin + yIntercept
+  if (yLeft >= domainMin && yLeft <= domainMax) {
+    intersections.push({ x: domainMin, y: yLeft })
+  }
+
+  // Calculate intersection with the right edge (x = domainMax)
+  let yRight = slope * domainMax + yIntercept
+  if (yRight >= domainMin && yRight <= domainMax) {
+    intersections.push({ x: domainMax, y: yRight })
+  }
+
+  // Calculate intersection with the bottom edge (y = domainMin)
+  let xBottom = (domainMin - yIntercept) / slope
+  if (xBottom >= domainMin && xBottom <= domainMax) {
+    intersections.push({ x: xBottom, y: domainMin })
+  }
+
+  // Calculate intersection with the top edge (y = domainMax)
+  let xTop = (domainMax - yIntercept) / slope
+  if (xTop >= domainMin && xTop <= domainMax) {
+    intersections.push({ x: xTop, y: domainMax })
+  }
+
+  // Convert domain coordinates back to range coordinates and adjust for margins
+  const extendedPoints = intersections.map((intersection) => {
+    return {
+      x: xScale(intersection.x) + marginLeft,
+      y: yScale(intersection.y) + marginTop,
+    }
+  })
+
+  return extendedPoints
+}
+
 function connectPoints() {
   d3.selectAll("path#connection").remove()
+
+  const points = graphConfig.pointRules.extendLines ? getExtendedPoints() : points
 
   const lineGenerator = d3
     .line()
